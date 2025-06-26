@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Polylang Bulk Translate Background
- * Plugin URI: https://github.com/your-username/polylang-bulk-translate-background
+ * Plugin URI: https://github.com/winnersmedia/polylang-bulk-translate-background
  * Description: Prevents timeouts during Polylang bulk translations by processing them in the background with real-time progress tracking.
  * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://yourwebsite.com
+ * Author: Matthew @ Winners Media
+ * Author URI: https://www.winnersmedia.co.uk
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
