@@ -8,7 +8,9 @@ Are you experiencing these issues with **Polylang bulk translations**?
 
 - ✅ **Bulk translate timeouts** when translating 50+ posts
 - ✅ **Server timeouts** during large translation operations  
-- ✅ **Cloudflare timeouts** on bulk translation requests
+- ✅ **Cloudflare 524 timeouts** on bulk translation requests
+- ✅ **Cloudflare 522 connection timeouts** during bulk operations
+- ✅ **Cloudflare gateway timeouts** blocking translation completion
 - ✅ **Memory limit exceeded** errors during bulk operations
 - ✅ **PHP max execution time** exceeded errors
 - ✅ **White screen of death** during bulk translations
@@ -50,6 +52,17 @@ Are you experiencing these issues with **Polylang bulk translations**?
 2. Upload to `/wp-content/plugins/polylang-bulk-translate-background/`
 3. Activate the plugin through the WordPress admin
 4. Go to **Settings → Bulk Translate BG** to configure
+
+## 🛡️ Cloudflare Compatibility
+
+This plugin specifically solves **Cloudflare timeout issues** that occur during Polylang bulk translations:
+
+- **Cloudflare 524 errors** (Connection timeout) - Fixed by background processing
+- **Cloudflare 522 errors** (Connection timeout) - Eliminated with batched operations  
+- **Gateway timeout errors** - Prevented by splitting large operations into small chunks
+- **100-second timeout limit** - Bypassed by processing translations in background queue
+
+The plugin processes translations **after** the initial request completes, so Cloudflare never sees long-running operations.
 
 ## ⚙️ Configuration
 
@@ -124,12 +137,14 @@ wp pbtb cleanup --days=7
 
 ### Before (Standard Polylang)
 - ❌ Timeouts with 50+ posts
+- ❌ Cloudflare 524/522 timeout errors
 - ❌ Server memory exhaustion
 - ❌ PHP execution time limits
 - ❌ Failed translations with no feedback
 
 ### After (Background Processing)
 - ✅ **No timeouts** - unlimited post quantities
+- ✅ **Cloudflare compatible** - no more gateway timeouts
 - ✅ **Memory efficient** - processes in small batches
 - ✅ **Progress tracking** - see exactly what's happening
 - ✅ **Error handling** - clear error messages and retry logic
@@ -148,6 +163,10 @@ This plugin solves these commonly searched problems:
 - Polylang bulk operation timeout
 - WordPress translation batch processing
 - Polylang performance optimization
+- Cloudflare timeout Polylang bulk translate
+- Polylang Cloudflare 524 error fix
+- WordPress Cloudflare timeout solution
+- Bulk translate Cloudflare gateway timeout
 
 ## ⚠️ Important Notes
 
