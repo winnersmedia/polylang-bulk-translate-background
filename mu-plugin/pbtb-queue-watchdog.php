@@ -22,6 +22,16 @@ add_action('init', function() {
     if (!wp_next_scheduled('pbtb_queue_watchdog')) {
         wp_schedule_event(time(), 'pbtb_watchdog_interval', 'pbtb_queue_watchdog');
     }
+    
+    // Also run watchdog check immediately on every page load if items are pending
+    global $wpdb;
+    $queue_table = $wpdb->prefix . 'pbtb_translation_queue';
+    if ($wpdb->get_var("SHOW TABLES LIKE '$queue_table'") == $queue_table) {
+        $pending = $wpdb->get_var("SELECT COUNT(*) FROM {$queue_table} WHERE status = 'pending'");
+        if ($pending > 0) {
+            do_action('pbtb_queue_watchdog');
+        }
+    }
 });
 
 // Register custom cron interval (every 5 minutes)
@@ -125,6 +135,31 @@ add_action('wp_loaded', function() {
     
     // Run our watchdog check
     do_action('pbtb_queue_watchdog');
+});
+
+// Hook into every cron execution to ensure pending items are processed
+add_action('wp_cron', function() {
+    // Check if plugin is active
+    if (!class_exists('Polylang_Bulk_Translate_Background')) {
+        return;
+    }
+    
+    global $wpdb;
+    $queue_table = $wpdb->prefix . 'pbtb_translation_queue';
+    
+    // Direct check and process
+    if ($wpdb->get_var("SHOW TABLES LIKE '$queue_table'") == $queue_table) {
+        $pending = $wpdb->get_var("SELECT COUNT(*) FROM {$queue_table} WHERE status = 'pending'");
+        if ($pending > 0) {
+            // Force immediate processing
+            do_action('pbtb_queue_watchdog');
+            
+            // Also try to directly trigger the processing
+            if (function_exists('wp_pbtb_process_queue')) {
+                wp_pbtb_process_queue();
+            }
+        }
+    }
 });
 
 // Clean up on deactivation
