@@ -166,6 +166,15 @@ class PBTB_Bulk_Translate_Background {
         $target_languages = $_REQUEST['pll-translate-lang'];
         $translation_type = $_REQUEST['translate'];
         
+        // Get the post type from the first post
+        $post_type = 'post';
+        if (!empty($post_ids)) {
+            $first_post = get_post($post_ids[0]);
+            if ($first_post) {
+                $post_type = $first_post->post_type;
+            }
+        }
+        
         // Generate batch ID
         $batch_id = 'batch_' . time() . '_' . wp_generate_password(8, false);
         
@@ -176,11 +185,12 @@ class PBTB_Bulk_Translate_Background {
             // Schedule background processing
             $this->schedule_batch_processing($batch_id);
             
-            // Redirect to progress page
+            // Redirect to progress page with post type
             $progress_url = add_query_arg(array(
                 'page' => 'pbtb-progress',
                 'batch_id' => $batch_id,
-                'total' => $queued_count
+                'total' => $queued_count,
+                'post_type' => $post_type
             ), admin_url('admin.php'));
             
             wp_redirect($progress_url);
@@ -645,6 +655,7 @@ class PBTB_Bulk_Translate_Background {
     public function progress_page() {
         $batch_id = isset($_GET['batch_id']) ? sanitize_text_field($_GET['batch_id']) : '';
         $total = isset($_GET['total']) ? intval($_GET['total']) : 0;
+        $post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'post';
         
         if (empty($batch_id)) {
             echo '<div class="wrap">';
@@ -708,14 +719,28 @@ class PBTB_Bulk_Translate_Background {
                         }
                         ?>
                     </div>
+                    
+                    <?php if ($stats && $stats['pending'] > 0): ?>
+                    <div style="font-size: 14px; color: #666; text-align: center; padding: 0 10px 10px;">
+                        <em><?php esc_html_e('Note: Processing may not start immediately. The queue is processed in the background when WordPress cron runs (typically every few minutes).', 'polylang-bulk-translate-background'); ?></em>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 
                 <div style="text-align: center; margin: 20px 0;">
                     <button id="pbtb-refresh" class="button button-secondary" style="margin-right: 10px;">
                         <?php esc_html_e('Refresh Progress', 'polylang-bulk-translate-background'); ?>
                     </button>
-                    <a href="<?php echo admin_url('edit.php'); ?>" class="button button-primary">
-                        <?php esc_html_e('Back to Posts', 'polylang-bulk-translate-background'); ?>
+                    <?php 
+                    // Generate the correct URL based on post type
+                    $back_url = ($post_type === 'post') ? admin_url('edit.php') : admin_url('edit.php?post_type=' . $post_type);
+                    
+                    // Get the post type object for proper labeling
+                    $post_type_obj = get_post_type_object($post_type);
+                    $button_text = $post_type_obj ? sprintf(__('Back to %s', 'polylang-bulk-translate-background'), $post_type_obj->labels->name) : __('Back to Posts', 'polylang-bulk-translate-background');
+                    ?>
+                    <a href="<?php echo esc_url($back_url); ?>" class="button button-primary">
+                        <?php echo esc_html($button_text); ?>
                     </a>
                 </div>
                 
